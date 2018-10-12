@@ -2,7 +2,7 @@
 node_modules
 # config/*
 # !config/default.*
-public/img/*
+# public/img/*
 coverage
 # local env files
 .env.local
