@@ -6,6 +6,8 @@ const flash = require('connect-flash')
 const config = require('config-lite')(__dirname)
 const routes = require('./routes')
 const pkg = require('./package')
+const winston = require('winston')
+const expressWinston = require('express-winston')
 
 const app = express()
 
@@ -30,8 +32,63 @@ app.use(session({
 
 app.use(flash())
 
+app.use(require('express-formidable')({
+  uploadDir: path.join(__dirname, 'public/img'),
+  keepExtensions: true
+}))
+
+app.locals.blog = {
+  title: pkg.name,
+  description: pkg.description
+}
+app.use(function (req, res, next) {
+  res.locals.user = req.session.user
+  res.locals.success = req.flash('success').toString()
+  res.locals.error = req.flash('error').toString()
+  next()
+})
+
+app.use(expressWinston.logger({
+  transports: [
+    new (winston.transports.Console)({
+      json: true,
+      colorize: true
+    }),
+    new winston.transports.File({
+      filename: 'logs/success.log'
+    })
+  ]
+}))
+
 routes(app)
 
-app.listen(config.port, function () {
-  console.log(`${pkg.name} listening on port ${config.port}`)
+app.use(expressWinston.errorLogger({
+  transports: [
+    new winston.transports.Console({
+      json: true,
+      colorize: true
+    }),
+    new winston.transports.File({
+      filename: 'logs/error.log'
+    })
+  ]
+}))
+
+app.use(function (err, req, res, next) {
+  console.error(err)
+  req.flash('error', err.message)
+  res.redirect('/posts')
+})
+
+// if (module.parent) {
+//   module.exports = app
+// } else {
+//   app.listen(config.port, function () {
+//     console.log(`${pkg.name} listening on port ${config.port}`)
+//   })
+// }
+
+const port = process.env.PORT || config.port
+app.listen(port, function () {
+  console.log(`${pkg.name} listening on port ${port}`)
 })
