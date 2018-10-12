@@ -1,7 +1,7 @@
 {
   "name": "blog-node",
   "version": "1.0.0",
-  "description": "",
+  "description": "Wellcome to Yiluyanxia`s paradise",
   "main": "index.js",
   "scripts": {
     "test": "istanbul cover node_modules/mocha/bin/_mocha",
